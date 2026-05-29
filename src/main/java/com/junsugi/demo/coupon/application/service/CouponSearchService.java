@@ -5,5 +5,6 @@ import com.junsugi.demo.coupon.presentation.response.CouponResponse;
 import java.util.List;
 
 public interface CouponSearchService {
+    CouponResponse findCoupon(Long couponId);
     List<CouponResponse> findCoupons();
 }

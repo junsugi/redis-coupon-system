@@ -30,15 +30,23 @@ public class CouponServiceImpl implements CouponService, CouponSearchService {
                 command.issueStartAt(),
                 command.issueEndAt()
         );
-        Coupon saveCoupon = couponRepository.save(coupon);
+        Coupon saveCoupon = this.couponRepository.save(coupon);
 
         return CouponCreateResponse.from(saveCoupon);
     }
 
     @Override
+    public CouponResponse findCoupon(Long couponId) {
+        Coupon coupon = this.couponRepository.findById(couponId)
+                .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다."));
+
+        return CouponMapper.toResponse(coupon);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<CouponResponse> findCoupons() {
-        List<Coupon> coupons = couponRepository.findAll();
+        List<Coupon> coupons = this.couponRepository.findAll();
 
         return coupons.stream()
                 .map(CouponMapper::toResponse)

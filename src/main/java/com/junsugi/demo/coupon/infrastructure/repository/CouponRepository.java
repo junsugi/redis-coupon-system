@@ -1,4 +1,4 @@
-package com.junsugi.demo.coupon.infrastructure;
+package com.junsugi.demo.coupon.infrastructure.repository;
 
 import com.junsugi.demo.coupon.domain.Coupon;
 import org.springframework.data.jpa.repository.JpaRepository;

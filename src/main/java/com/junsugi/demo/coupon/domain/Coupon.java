@@ -89,6 +89,19 @@ public class Coupon {
         );
     }
 
+    public void validateIssuable() {
+        LocalDateTime now = LocalDateTime.now();
+
+        if (this.status != CouponStatus.ACTIVE)
+            throw new IllegalArgumentException("비활성화된 쿠폰입니다.");
+
+        if (now.isBefore(this.issueStartAt))
+            throw new IllegalArgumentException("아직 발급이 시작되지 않은 쿠폰입니다.");
+
+        if (now.isAfter(this.issueEndAt))
+            throw new IllegalArgumentException("발급 기간이 만료된 쿠폰입니다.");
+    }
+
     private void validateIssuePeriod(LocalDateTime startAt, LocalDateTime endAt) {
         if (endAt.isBefore(startAt) || endAt.isEqual(startAt))
             throw new IllegalArgumentException("쿠폰 발급 종료 시간은 시작 시간보다 이후여야 합니다.");

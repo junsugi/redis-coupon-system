@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -21,15 +22,19 @@ public class RedisCouponIssueLimiter implements CouponIssueLimiter {
     private final DefaultRedisScript<Long> couponIssueScript;
 
     @Override
-    public void issue(Long couponId, Long userId, int totalQuantity) {
+    public void issue(Long couponId, Long userId, int totalQuantity, LocalDateTime issuedAt) {
         Long result = redisTemplate.execute(
                 couponIssueScript,
                 List.of(
                         getIssuedCountKey(couponId),
-                        getUserIssuedKey(couponId, userId)
+                        getUserIssuedKey(couponId, userId),
+                        CouponIssueStreamConstants.ISSUE_STREAM_KEY
                 ),
                 String.valueOf(totalQuantity),
-                String.valueOf(Duration.ofDays(7).toSeconds())
+                String.valueOf(Duration.ofDays(7).toSeconds()),
+                String.valueOf(couponId),
+                String.valueOf(userId),
+                issuedAt.toString()
         );
 
         validateResult(result);

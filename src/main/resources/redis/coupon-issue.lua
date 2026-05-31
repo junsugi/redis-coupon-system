@@ -1,8 +1,12 @@
 local issuedCountKey = KEYS[1]
 local userIssuedKey = KEYS[2]
+가local issuedStreamKey = KEYS[3]
 
 local totalQuantity = tonumber(ARGV[1])
 local ttlSeconds = tonumber(ARGV[2])
+local couponId = ARGV[3]
+local userId = ARGV[4]
+local issuedAt = ARGV[5]
 
 -- 이미 발급받은 사용자
 if redis.call('EXISTS', userIssuedKey) == 1 then
@@ -20,11 +24,15 @@ end
 redis.call('INCR', issuedCountKey)
 redis.call('SET', userIssuedKey, '1')
 
--- 이벤트 기간 이후 자동 정리용 TTL
-if (ttlSeconds > 0) then
-    redis.call('EXPIRE', issuedCountKey, ttlSeconds)
-    redis.call('EXPIRE', userIssuedKey, ttlSeconds)
-end
+-- 발급 성공 이벤트 저장
+redis.call(
+        'XADD',
+        issuedStreamKey,
+        '*',
+        'couponId', couponId,
+        'userId', userId,
+        'issuedAt', issuedAt
+)
 
 -- 성공
 return 0

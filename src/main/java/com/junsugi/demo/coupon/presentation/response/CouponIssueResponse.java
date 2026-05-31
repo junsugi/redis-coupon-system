@@ -1,21 +1,19 @@
 package com.junsugi.demo.coupon.presentation.response;
 
-import com.junsugi.demo.coupon.domain.CouponIssue;
-
 import java.time.LocalDateTime;
 
 public record CouponIssueResponse (
-        Long issueId,
         Long couponId,
         Long userId,
-        LocalDateTime createdAt
+        LocalDateTime issuedAt,
+        String status
 ){
-    public static CouponIssueResponse from(CouponIssue issuedCoupon) {
+    public static CouponIssueResponse create(Long couponId, Long userId, LocalDateTime issuedAt, String status) {
         return new CouponIssueResponse(
-                issuedCoupon.getId(),
-                issuedCoupon.getCouponId(),
-                issuedCoupon.getUserId(),
-                issuedCoupon.getCreateAt()
+                couponId,
+                userId,
+                issuedAt,
+                status
         );
     }
 }

@@ -1,6 +1,6 @@
 local issuedCountKey = KEYS[1]
 local userIssuedKey = KEYS[2]
-가local issuedStreamKey = KEYS[3]
+local issuedStreamKey = KEYS[3]
 
 local totalQuantity = tonumber(ARGV[1])
 local ttlSeconds = tonumber(ARGV[2])
@@ -22,7 +22,13 @@ end
 
 -- 발급 처리
 redis.call('INCR', issuedCountKey)
-redis.call('SET', userIssuedKey, '1')
+
+if ttlSeconds > 0 then
+    redis.call('SET', userIssuedKey, '1', 'EX', ttlSeconds)
+    redis.call('EXPIRE', issuedCountKey, ttlSeconds)
+else
+    redis.call('SET', userIssuedKey, '1')
+end
 
 -- 발급 성공 이벤트 저장
 redis.call(

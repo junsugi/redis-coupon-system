@@ -1,9 +1,6 @@
 package com.junsugi.demo.coupon.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +9,15 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Table(
+        name = "coupon_issue",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_coupon_issue_coupon_user",
+                        columnNames = {"coupon_id", "user_id"}
+                )
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponIssue {
     @Id
@@ -25,21 +31,19 @@ public class CouponIssue {
     private Long userId;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createAt;
+    private LocalDateTime issuedAt;
 
-    private CouponIssue(
-            Long couponId,
-            Long userId
-    ) {
+    private CouponIssue(Long couponId, Long userId, LocalDateTime issuedAt) {
         this.couponId = couponId;
         this.userId = userId;
-        this.createAt = LocalDateTime.now();
+        this.issuedAt = issuedAt;
     }
 
-    public static CouponIssue create(
-            Long couponId,
-            Long userId
-    ) {
-        return new CouponIssue(couponId, userId);
+    public static CouponIssue create(Long couponId, Long userId, LocalDateTime issuedAt) {
+        return new CouponIssue(
+                couponId,
+                userId,
+                issuedAt
+        );
     }
 }

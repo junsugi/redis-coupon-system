@@ -4,18 +4,16 @@ import com.junsugi.demo.coupon.application.command.CouponCreateCommand;
 import com.junsugi.demo.coupon.application.command.CouponIssueCommand;
 import com.junsugi.demo.coupon.application.port.CouponIssueLimiter;
 import com.junsugi.demo.coupon.domain.Coupon;
-import com.junsugi.demo.coupon.domain.CouponIssue;
-import com.junsugi.demo.coupon.infrastructure.repository.CouponIssueRepository;
-import com.junsugi.demo.coupon.infrastructure.repository.CouponRepository;
+import com.junsugi.demo.coupon.infrastructure.persistence.CouponRepository;
 import com.junsugi.demo.coupon.presentation.mapper.CouponMapper;
 import com.junsugi.demo.coupon.presentation.response.CouponCreateResponse;
 import com.junsugi.demo.coupon.presentation.response.CouponIssueResponse;
 import com.junsugi.demo.coupon.presentation.response.CouponResponse;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,7 +23,6 @@ public class CouponServiceImpl implements CouponService, CouponSearchService, Co
     private final CouponIssueLimiter couponIssueLimiter;
 
     private final CouponRepository couponRepository;
-    private final CouponIssueRepository couponIssueRepository;
 
     @Override
     @Transactional
@@ -69,19 +66,20 @@ public class CouponServiceImpl implements CouponService, CouponSearchService, Co
 
         coupon.validateIssuable();
 
+        LocalDateTime issuedAt = LocalDateTime.now();
+
         this.couponIssueLimiter.issue(
                 coupon.getId(),
                 command.userid(),
-                coupon.getTotalQuantity()
+                coupon.getTotalQuantity(),
+                issuedAt
         );
 
-        CouponIssue couponIssue = CouponIssue.create(
+        return CouponIssueResponse.create(
                 coupon.getId(),
-                command.userid()
+                command.userid(),
+                issuedAt,
+                "ISSUED"
         );
-
-        CouponIssue issuedCoupon = this.couponIssueRepository.save(couponIssue);
-
-        return CouponIssueResponse.from(issuedCoupon);
     }
 }

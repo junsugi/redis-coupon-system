@@ -15,4 +15,12 @@ public class RedisScriptConfig {
         script.setResultType(Long.class);
         return script;
     }
+
+    @Bean
+    public DefaultRedisScript<Long> couponIssueDeadLetterScript() {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setLocation(new ClassPathResource("redis/coupon-issue-dlq.lua"));
+        script.setResultType(Long.class);
+        return script;
+    }
 }

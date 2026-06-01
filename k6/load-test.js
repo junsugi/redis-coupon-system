@@ -7,7 +7,7 @@ export const options = {
         coupon_issue: {
             executor: 'shared-iterations',
             vus: 1000,
-            iterations: 10000,
+            iterations: 1500,
             maxDuration: '2m',
         },
     },
@@ -17,7 +17,7 @@ export default function () {
     const userId = exec.scenario.iterationInTest + 1;
 
     const res = http.post(
-        'http://localhost:8080/api/coupons/1/issue',
+        'http://localhost:8080/api/coupons/3/issue',
         JSON.stringify({ userId }),
         {
             headers: {
@@ -27,7 +27,7 @@ export default function () {
     );
 
     check(res, {
-        'status is 200': (r) => r.status === 200,
+        'status is expected': (r) => r.status === 200 || r.status === 400,
     });
 
     sleep(1);

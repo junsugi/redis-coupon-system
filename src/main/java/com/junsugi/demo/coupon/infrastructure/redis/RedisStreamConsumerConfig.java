@@ -1,6 +1,7 @@
 package com.junsugi.demo.coupon.infrastructure.redis;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataAccessException;
@@ -23,6 +24,11 @@ public class RedisStreamConsumerConfig {
     private final CouponIssueStreamListener couponIssueStreamListener;
 
     @Bean
+    @ConditionalOnProperty(
+            name = "coupon.issue.stream.listener.enabled",
+            havingValue = "true",
+            matchIfMissing = true
+    )
     public StreamMessageListenerContainer<String, MapRecord<String, String, String>> couponIssueStreamContainer(
             RedisConnectionFactory connectionFactory
     ){

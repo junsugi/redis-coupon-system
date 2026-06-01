@@ -13,14 +13,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CouponIssueStreamListener implements StreamListener<String, MapRecord<String, String, String>> {
 
-    private final CouponIssueProcessor couponIssueProcessor;
+    private final CouponIssueMessageProcessor couponIssueMessageProcessor;
     private final StringRedisTemplate redisTemplate;
 
 
     @Override
     public void onMessage(MapRecord<String, String, String> message) {
         try {
-            couponIssueProcessor.Process(message.getValue());
+            couponIssueMessageProcessor.process(message.getValue());
 
             redisTemplate.opsForStream().acknowledge(
                     CouponIssueStreamConstants.ISSUE_STREAM_KEY,

@@ -19,7 +19,7 @@ public class CouponIssueMessageProcessor {
     public void process(Map<String, String> values){
         Long couponId = getRequiredLong(values, "couponId");
         Long userId = getRequiredLong(values, "userId");
-        LocalDateTime issuedAt = getRequiredLocalDateTime(values, "issuedAt");
+        LocalDateTime issuedAt = getRequiredLocalDateTime(values);
 
         couponIssuePersistService.persist(
                 new CouponIssuePersistCommand(couponId, userId, issuedAt)
@@ -38,11 +38,11 @@ public class CouponIssueMessageProcessor {
         return Long.parseLong(value);
     }
 
-    private LocalDateTime getRequiredLocalDateTime(Map<String, String> values, String key) {
-        String value = values.get(key);
+    private LocalDateTime getRequiredLocalDateTime(Map<String, String> values) {
+        String value = values.get("issuedAt");
 
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("Stream message field is missing. key=" + key);
+            throw new IllegalArgumentException("Stream message field is missing. key=" + "issuedAt");
         }
 
         return LocalDateTime.parse(value);

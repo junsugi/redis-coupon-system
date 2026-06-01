@@ -12,11 +12,11 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CouponIssueProcessor {
+public class CouponIssueMessageProcessor {
 
     private final CouponIssuePersistService couponIssuePersistService;
 
-    public void Process(Map<String, String> values){
+    public void process(Map<String, String> values){
         Long couponId = getRequiredLong(values, "couponId");
         Long userId = getRequiredLong(values, "userId");
         LocalDateTime issuedAt = getRequiredLocalDateTime(values, "issuedAt");

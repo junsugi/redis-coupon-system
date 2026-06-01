@@ -1,6 +1,7 @@
-package com.junsugi.demo.coupon.infrastructure.redis;
+package com.junsugi.demo.coupon.infrastructure.redis.limiter;
 
 import com.junsugi.demo.coupon.application.port.CouponIssueLimiter;
+import com.junsugi.demo.coupon.infrastructure.redis.CouponIssueStreamConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;

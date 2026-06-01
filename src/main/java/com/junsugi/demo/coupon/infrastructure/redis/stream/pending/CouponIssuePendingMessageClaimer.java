@@ -1,5 +1,7 @@
-package com.junsugi.demo.coupon.infrastructure.redis;
+package com.junsugi.demo.coupon.infrastructure.redis.stream.pending;
 
+import com.junsugi.demo.coupon.infrastructure.redis.config.CouponIssueProperties;
+import com.junsugi.demo.coupon.infrastructure.redis.stream.message.ClaimedCouponIssueMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -12,7 +14,9 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.junsugi.demo.coupon.infrastructure.redis.CouponIssueStreamConstants.*;
 
@@ -21,13 +25,13 @@ import static com.junsugi.demo.coupon.infrastructure.redis.CouponIssueStreamCons
 public class CouponIssuePendingMessageClaimer {
 
     private final StringRedisTemplate redisTemplate;
-    private final CouponIssuePendingProperties pendingProperties;
+    private final CouponIssueProperties properties;
 
-    public List<MapRecord<String, String, String>> claim() {
+    public List<ClaimedCouponIssueMessage> claim() {
         StreamOperations<String, String, String> streamOps = redisTemplate.opsForStream();
 
-        Duration minIdleTime = pendingProperties.minIdleTime();
-        int claimCount = pendingProperties.claimCount();
+        Duration minIdleTime = properties.pending().minIdleTime();
+        int claimCount = properties.pending().claimCount();
 
         PendingMessages pendingMessages = streamOps.pending(
                 ISSUE_STREAM_KEY,
@@ -39,12 +43,15 @@ public class CouponIssuePendingMessageClaimer {
         if (pendingMessages == null || pendingMessages.isEmpty())
             return List.of();
 
-        RecordId[] recordIds = extractClaimableRecordIds(pendingMessages, minIdleTime);
+        Map<RecordId, Long> deliveryCountByRecordId =
+                extractClaimableRecordIds(pendingMessages, minIdleTime);
 
-        if (recordIds.length == 0)
+        if (deliveryCountByRecordId.isEmpty())
             return List.of();
 
-        List<MapRecord<String, String, String>> claimedMessages = streamOps.claim(
+        RecordId[] recordIds = deliveryCountByRecordId.keySet().toArray(RecordId[]::new);
+
+        List<MapRecord<String, String, String>> claimedRecords = streamOps.claim(
                 ISSUE_STREAM_KEY,
                 ISSUE_GROUP,
                 ISSUE_PENDING_WORKER_CONSUMER,
@@ -52,10 +59,16 @@ public class CouponIssuePendingMessageClaimer {
                 recordIds
         );
 
-        if (claimedMessages == null || claimedMessages.isEmpty())
+        if (claimedRecords == null || claimedRecords.isEmpty())
             return List.of();
 
-        return claimedMessages;
+        List<ClaimedCouponIssueMessage> result = new ArrayList<>();
+        for (MapRecord<String, String, String> record : claimedRecords) {
+            long deliveryCount = deliveryCountByRecordId.getOrDefault(record.getId(), 1L);
+            result.add(new ClaimedCouponIssueMessage(record, deliveryCount));
+        }
+
+        return result;
     }
 
     public void acknowledge(RecordId recordId) {
@@ -66,18 +79,21 @@ public class CouponIssuePendingMessageClaimer {
         );
     }
 
-    private RecordId[] extractClaimableRecordIds(
+    private Map<RecordId, Long> extractClaimableRecordIds(
             PendingMessages pendingMessages,
             Duration minIdleTime
     ) {
-        List<RecordId> recordIds = new ArrayList<>();
+        Map<RecordId, Long> deliveryCountByRecordId = new LinkedHashMap<>();
 
         for (PendingMessage pendingMessage : pendingMessages) {
             if (pendingMessage.getElapsedTimeSinceLastDelivery().compareTo(minIdleTime) >= 0) {
-                recordIds.add(pendingMessage.getId());
+                deliveryCountByRecordId.put(
+                        pendingMessage.getId(),
+                        pendingMessage.getTotalDeliveryCount()
+                );
             }
         }
 
-        return recordIds.toArray(RecordId[]::new);
+        return deliveryCountByRecordId;
     }
 }

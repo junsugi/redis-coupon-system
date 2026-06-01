@@ -1,5 +1,6 @@
 package com.junsugi.demo.coupon.infrastructure.redis;
 
+import com.junsugi.demo.coupon.infrastructure.redis.stream.pending.CouponIssuePendingWorker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

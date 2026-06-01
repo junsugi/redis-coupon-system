@@ -1,5 +1,7 @@
-package com.junsugi.demo.coupon.infrastructure.redis;
+package com.junsugi.demo.coupon.infrastructure.redis.config;
 
+import com.junsugi.demo.coupon.infrastructure.redis.CouponIssueStreamConstants;
+import com.junsugi.demo.coupon.infrastructure.redis.CouponIssueStreamListener;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +22,6 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class RedisStreamConsumerConfig {
 
-    private final StringRedisTemplate redisTemplate;
     private final CouponIssueStreamListener couponIssueStreamListener;
 
     @Bean
@@ -33,7 +34,6 @@ public class RedisStreamConsumerConfig {
             RedisConnectionFactory connectionFactory
     ){
         createStreamIfNotExists(connectionFactory);
-        createGroupIfNotExists();
 
         StreamMessageListenerContainer.StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> options =
                 StreamMessageListenerContainer.StreamMessageListenerContainerOptions
@@ -74,24 +74,6 @@ public class RedisStreamConsumerConfig {
                     );
         } catch (DataAccessException e) {
             String message = e.getCause().getMessage();
-            if (message != null && message.contains("BUSYGROUP")) {
-                return;
-            }
-
-            throw e;
-        }
-    }
-
-    private void createGroupIfNotExists() {
-        try {
-            redisTemplate.opsForStream().createGroup(
-                    CouponIssueStreamConstants.ISSUE_STREAM_KEY,
-                    ReadOffset.from("0-0"),
-                    CouponIssueStreamConstants.ISSUE_GROUP
-            );
-        } catch (DataAccessException e){
-            String message = e.getCause().getMessage();
-
             if (message != null && message.contains("BUSYGROUP")) {
                 return;
             }

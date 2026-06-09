@@ -44,7 +44,7 @@ public class CouponIssuePendingMessageClaimer {
             return List.of();
 
         Map<RecordId, Long> deliveryCountByRecordId =
-                extractClaimableRecordIds(pendingMessages, minIdleTime);
+                findClaimableRecordIdsWithDeliveryCount(pendingMessages, minIdleTime);
 
         if (deliveryCountByRecordId.isEmpty())
             return List.of();
@@ -79,7 +79,7 @@ public class CouponIssuePendingMessageClaimer {
         );
     }
 
-    private Map<RecordId, Long> extractClaimableRecordIds(
+    private Map<RecordId, Long> findClaimableRecordIdsWithDeliveryCount(
             PendingMessages pendingMessages,
             Duration minIdleTime
     ) {
